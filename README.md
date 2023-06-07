@@ -1,7 +1,7 @@
 # crud-bookstore-pern
 
 ## How to Run this Source Code in Local 
-- Clone this project on your computer.
+Clone this project on your computer.
   ```bash
      https://github.com/xjagaimo/crud-bookstore-pern
    ```
