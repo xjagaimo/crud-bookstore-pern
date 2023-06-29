@@ -317,42 +317,68 @@ app.put("/book/:id", async (req, res) => {
       const { id } = req.params;
       const { book_isbn, book_name, pages, book_desc, price, language_id, publisher_id, category_id, last_update, image_url, publication_year } = req.body;
 
-      const updateBook = await pool.query(
+      await pool.query('BEGIN');
+      await pool.query(
         "UPDATE Book SET book_isbn = $2 ,book_name = $3 ,pages = $4 ,book_desc=$5 ,price=$6 ,language_id=$7 ,publisher_id=$8 ,category_id=$9 ,last_update= NOW() ,image_url=$10 ,publication_year=$11  WHERE book_id = $1",
         [id, book_isbn, book_name, pages, book_desc, price, language_id, publisher_id, category_id, image_url, publication_year]
-      );
+      )
   
       const selectItem = await pool.query(
         "SELECT * FROM book WHERE book_id = $1",
         [id]
       )
-  
+      await pool.query('COMMIT');
+
       res.json(selectItem.rows[0]);
     } catch (err) {
       console.error(err.message);
+      await pool.query('ROLLBACK');
     }
 });
 
-app.put("/category/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { category_name, last_update } = req.body;
+// app.put("/category/:id", async (req, res) => {
+//     try {
+//       const { id } = req.params;
+//       const { category_name, last_update } = req.body;
 
-      const updateBook = await pool.query(
-        "UPDATE category SET category_name = $2, last_update = NOW() WHERE category_id = $1",
-        [id, category_name]
-      );
+//       const updateBook = await pool.query(
+//         "UPDATE category SET category_name = $2, last_update = NOW() WHERE category_id = $1",
+//         [id, category_name]
+//       );
 
-      const selectItem = await pool.query(
-        "SELECT * FROM category WHERE category_id = $1",
-        [id]
-      )
+//       const selectItem = await pool.query(
+//         "SELECT * FROM category WHERE category_id = $1",
+//         [id]
+//       )
   
-      res.json(selectItem.rows[0]);
-      // console.log(selectItem);
-    } catch (err) {
-      console.error(err.message);
-    }
+//       res.json(selectItem.rows[0]);
+//       // console.log(selectItem);
+//     } catch (err) {
+//       console.error(err.message);
+//     }
+// });
+
+app.put("/category/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { category_name, last_update } = req.body;
+
+    await pool.query('BEGIN');
+    await pool.query(
+      "UPDATE category SET category_name = $2, last_update = NOW() WHERE category_id = $1",
+      [id, category_name]
+    )  
+    const selectItem = await pool.query(
+      "SELECT * FROM category WHERE category_id = $1",
+      [id]
+    )
+    await pool.query('COMMIT');
+
+    res.json(selectItem.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    await pool.query('ROLLBACK');
+  }
 });
 
 app.put("/address/:id", async (req, res) => {
@@ -360,7 +386,8 @@ app.put("/address/:id", async (req, res) => {
     const { id } = req.params;
     const { address, city, country, postal_code, last_update } = req.body;
 
-    const update = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE address SET address = $2, city=$3, country=$4, postal_code=$5, last_update = NOW() WHERE address_id = $1",
       [id, address, city, country, postal_code]
     );
@@ -369,10 +396,12 @@ app.put("/address/:id", async (req, res) => {
       "SELECT * FROM address WHERE address_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);  
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -381,7 +410,8 @@ app.put('/author/:id', async(req, res) => {
     const { id } = req.params;
     const { author_name, year_born, last_update } = req.body;
 
-    const update = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE author SET author_name=$2, year_born=$3, last_update=NOW() WHERE author_id=$1",
       [id, author_name, year_born]
     );
@@ -390,10 +420,12 @@ app.put('/author/:id', async(req, res) => {
       "SELECT * FROM author WHERE author_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -402,7 +434,8 @@ app.put('/customer/:id', async(req, res) => {
     const { id } = req.params;
     const { customer_name, store_id, address_id, last_update } = req.body;
 
-    const update = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE customer SET customer_name=$2, store_id=$3, address_id=$4, last_update=NOW() WHERE customer_id=$1",
       [id, customer_name, store_id, address_id]
     );
@@ -411,10 +444,12 @@ app.put('/customer/:id', async(req, res) => {
       "SELECT * FROM customer WHERE customer_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -423,7 +458,8 @@ app.put('/inventory/:id', async(req, res) => {
     const { id } = req.params;
     const { book_id, store_id, quantity, last_update } = req.body;
 
-    const add = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE inventory SET book_id=$2, store_id=$3, quantity=$4, last_update=NOW() WHERE inventory_id=$1",
       [id, book_id, store_id, quantity]
     );
@@ -432,11 +468,13 @@ app.put('/inventory/:id', async(req, res) => {
       "SELECT * FROM inventory WHERE inventory_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
 
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -445,7 +483,8 @@ app.put('/language/:id', async(req, res) => {
     const { id } = req.params;
     const { language, last_update } = req.body;
 
-    const add = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE language SET language=$2, last_update=NOW() WHERE language_id=$1",
       [id, language]
     );
@@ -454,10 +493,12 @@ app.put('/language/:id', async(req, res) => {
       "SELECT * FROM language WHERE language_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -466,7 +507,8 @@ app.put('/publisher/:id', async(req, res) => {
     const { id } = req.params;
     const { publisher_name, address_id, last_update } = req.body;
 
-    const add = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE publisher SET publisher_name=$2, address_id=$3, last_update=NOW() WHERE publisher_id=$1",
       [id, publisher_name, address_id]
     );
@@ -475,10 +517,12 @@ app.put('/publisher/:id', async(req, res) => {
       "SELECT * FROM publisher WHERE publisher_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -487,7 +531,8 @@ app.put('/purchase/:id', async(req, res) => {
     const { id } = req.params;
     const { customer_id, purchase_date, store_id, staff_id, inventory_id, last_update } = req.body;
 
-    const add = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE purchase SET customer_id=$2, purchase_date=$3, store_id=$4, staff_id=$5, inventory_id=$6, last_update=NOW() WHERE purchase_id=$1",
       [id, customer_id, purchase_date, store_id, staff_id, inventory_id]
     );
@@ -496,10 +541,12 @@ app.put('/purchase/:id', async(req, res) => {
       "SELECT * FROM purchase WHERE purchase_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -508,7 +555,8 @@ app.put('/review/:id', async(req, res) => {
     const { id } = req.params;
     const { book_id, customer_id, rating, review, last_update } = req.body;
 
-    const add = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE review SET book_id=$2, customer_id=$3, rating=$4, review=$5, last_update=NOW() WHERE review_id= $1",
       [id, book_id, customer_id, rating, review, last_update]
     );
@@ -517,10 +565,12 @@ app.put('/review/:id', async(req, res) => {
       "SELECT * FROM review WHERE review_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -529,7 +579,8 @@ app.put('/staff/:id', async(req, res) => {
     const { id } = req.params;
     const { first_name, last_name, address_id, store_id, picture_url, position, last_update } = req.body;
 
-    const add = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE staff SET first_name=$2, last_name=$3, address_id=$4, store_id=$5, picture_url=$6, position=$7, last_update=NOW() WHERE staff_id= $1",
       [id, first_name, last_name, address_id, store_id, picture_url, position]
     );
@@ -538,11 +589,13 @@ app.put('/staff/:id', async(req, res) => {
       "SELECT * FROM staff WHERE staff_id = $1",
       [id]
     )
-
+    await pool.query('COMMIT');
+    
     res.json(selectItem.rows[0]);
 
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
@@ -551,7 +604,8 @@ app.put('/store/:id', async(req, res) => {
     const { id } = req.params;
     const { address_id, last_update } = req.body;
 
-    const add = await pool.query(
+    await pool.query('BEGIN');
+    await pool.query(
       "UPDATE store (address_id, last_update) VALUES ($1, NOW()) RETURNING *",
       [address_id]
     );
@@ -560,10 +614,12 @@ app.put('/store/:id', async(req, res) => {
       "SELECT * FROM store WHERE store_id = $1",
       [id]
     )
+    await pool.query('COMMIT');
 
     res.json(selectItem.rows[0]);
   } catch (err) {
     console.error(err.message);
+    await pool.query('ROLLBACK');
   }
 });
 
